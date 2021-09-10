@@ -1,4 +1,4 @@
-module github.com/sfreiberg/gotwilio
+module github.com/admpub/gotwilio
 
 require (
 	github.com/golang-jwt/jwt/v4 v4.0.0
