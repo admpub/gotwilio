@@ -4,6 +4,7 @@ package gotwilio
 import (
 	"encoding/json"
 	"fmt"
+	"context"
 	"net/http"
 	"net/url"
 	"path"
@@ -15,6 +16,7 @@ const (
 	baseURL       = "https://api.twilio.com/2010-04-01"
 	videoURL      = "https://video.twilio.com"
 	lookupURL     = "https://lookups.twilio.com/v1" // https://www.twilio.com/docs/lookup/api
+	priceURL      = "https://pricing.twilio.com/v1"
 	clientTimeout = time.Second * 30
 )
 
@@ -31,6 +33,7 @@ type Twilio struct {
 	BaseUrl    string
 	VideoUrl   string
 	LookupURL  string
+	PriceUrl   string
 	HTTPClient *http.Client
 
 	APIKeySid    string
@@ -74,6 +77,7 @@ func NewTwilioClientCustomHTTP(accountSid, authToken string, HTTPClient *http.Cl
 		BaseUrl:    baseURL,
 		VideoUrl:   videoURL,
 		LookupURL:  lookupURL,
+		PriceUrl:   priceURL,
 		HTTPClient: HTTPClient,
 	}
 }
@@ -111,8 +115,8 @@ func (twilio *Twilio) getBasicAuthCredentials() (string, string) {
 	return twilio.AccountSid, twilio.AuthToken
 }
 
-func (twilio *Twilio) post(formValues url.Values, twilioUrl string) (*http.Response, error) {
-	req, err := http.NewRequest("POST", twilioUrl, strings.NewReader(formValues.Encode()))
+func (twilio *Twilio) post(ctx context.Context, formValues url.Values, twilioUrl string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", twilioUrl, strings.NewReader(formValues.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +126,8 @@ func (twilio *Twilio) post(formValues url.Values, twilioUrl string) (*http.Respo
 	return twilio.do(req)
 }
 
-func (twilio *Twilio) get(twilioUrl string) (*http.Response, error) {
-	req, err := http.NewRequest("GET", twilioUrl, nil)
+func (twilio *Twilio) get(ctx context.Context, twilioUrl string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", twilioUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -132,8 +136,8 @@ func (twilio *Twilio) get(twilioUrl string) (*http.Response, error) {
 	return twilio.do(req)
 }
 
-func (twilio *Twilio) delete(twilioUrl string) (*http.Response, error) {
-	req, err := http.NewRequest("DELETE", twilioUrl, nil)
+func (twilio *Twilio) delete(ctx context.Context, twilioUrl string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", twilioUrl, nil)
 	if err != nil {
 		return nil, err
 	}

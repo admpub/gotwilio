@@ -1,6 +1,7 @@
 package gotwilio
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -33,6 +34,7 @@ type UsageRecord struct {
 	CountUnit   string `json:"count_unit"`
 	Usage       int    `json:"usage,string"`
 	UsageUnit   string `json:"usage_unit"`
+	AsOf        string `json:"as_of"` // GMT timestamp formatted as YYYY-MM-DDTHH:MM:SS+00:00
 	// TODO: handle SubresourceUris
 }
 
@@ -44,6 +46,10 @@ type UsageResponse struct {
 }
 
 func (twilio *Twilio) GetUsage(category, startDate, endDate string, includeSubaccounts bool) (*UsageResponse, *Exception, error) {
+	return twilio.GetUsageWithContext(context.Background(), category, startDate, endDate, includeSubaccounts)
+}
+
+func (twilio *Twilio) GetUsageWithContext(ctx context.Context, category, startDate, endDate string, includeSubaccounts bool) (*UsageResponse, *Exception, error) {
 	formValues := url.Values{}
 	formValues.Set("category", category)
 	formValues.Set("start_date", startDate)
@@ -54,7 +60,7 @@ func (twilio *Twilio) GetUsage(category, startDate, endDate string, includeSubac
 	var exception *Exception
 	twilioUrl := twilio.BaseUrl + "/Accounts/" + twilio.AccountSid + "/Usage/Records.json"
 
-	res, err := twilio.get(twilioUrl + "?" + formValues.Encode())
+	res, err := twilio.get(ctx, twilioUrl+"?"+formValues.Encode())
 	if err != nil {
 		return nil, nil, err
 	}
